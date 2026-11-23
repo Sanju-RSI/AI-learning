@@ -1,0 +1,7 @@
+tiktoken==0.14.0
+numpy==2.5.5
+fastembed==0.9.1
+mlx-lm==0.32.2
+nbformat==5.11.1
+nbclient==0.11.0
+ipykernel==7.4.0
