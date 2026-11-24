@@ -1,0 +1,9 @@
+# Testing Rules
+
+1. Use Jest for unit testing.
+2. Cover positive test cases.
+3. Cover negative test cases.
+4. Test edge cases.
+5. Mock external dependencies.
+6. Do not modify production code just to
+   make tests pass without understanding why.

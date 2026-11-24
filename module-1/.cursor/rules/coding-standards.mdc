@@ -1,0 +1,10 @@
+# Coding Standards
+
+1. Use TypeScript.
+2. Follow clean code principles.
+3. Use async/await for asynchronous operations.
+4. Handle errors properly.
+5. Avoid unnecessary any types.
+6. Use meaningful variable names.
+7. Write modular and reusable functions.
+8. Add unit tests for business logic.
