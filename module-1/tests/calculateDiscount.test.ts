@@ -109,9 +109,9 @@ describe('calculateDiscount', () => {
     });
   });
 
-//   describe('module load', () => {
-//     it('mocks console.log and records the sample calculation', () => {
-//       expect(console.log).toHaveBeenCalledWith('calculate: ', 9);
-//     });
-//   });
+  //   describe('module load', () => {
+  //     it('mocks console.log and records the sample calculation', () => {
+  //       expect(console.log).toHaveBeenCalledWith('calculate: ', 9);
+  //     });
+  //   });
 });
