@@ -12,6 +12,7 @@ Check:
 6. Naming conventions
 
 Provide:
+
 - Issue
 - Severity
 - Explanation

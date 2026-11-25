@@ -1,0 +1,8 @@
+{
+    "mcpServers": {
+      "sample-api": {
+        "command": "npx",
+        "args": ["tsx", "src/mcp/server.ts"] // path of the MCP server file
+      } 
+    }
+  }

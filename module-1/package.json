@@ -12,20 +12,29 @@
     "format:check": "prettier --check .",
     "test": "jest",
     "quality": "npm run typecheck && npm run lint && npm run format:check && npm test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "mcp": "tsx src/mcp/server.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.6",
     "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
     "husky": "^9.1.7",
     "jest": "^30.5.2",
     "lint-staged": "^15.5.2",
+    "prettier": "^3.10.1",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.74.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
   }
 }
