@@ -7,7 +7,12 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "jest",
+    "quality": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +22,9 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.6",
     "esbuild": "^0.28.2",
+    "husky": "^9.1.7",
     "jest": "^30.5.2",
+    "lint-staged": "^15.5.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
