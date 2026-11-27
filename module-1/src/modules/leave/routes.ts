@@ -19,6 +19,10 @@ const versionSchema = z.object({
   version: z.number().int().positive(),
 });
 
+const approveSchema = versionSchema.extend({
+  note: z.string().trim().min(1).max(500).optional(),
+});
+
 const rejectSchema = versionSchema.extend({
   reason: z.string(),
 });
@@ -31,7 +35,7 @@ const balanceQuerySchema = z.object({
 export function createLeaveRouter(pool: Pool, config: AppConfig): Router {
   const router = Router();
   const leave = new LeaveService(pool);
-  router.use(createAuthenticate(config.jwtSecret));
+  router.use(createAuthenticate(pool, config.jwtSecret));
 
   router.get(
     '/balances',
@@ -78,8 +82,15 @@ export function createLeaveRouter(pool: Pool, config: AppConfig): Router {
     asyncHandler(async (req, res) => {
       const actor = requireUser(req);
       const params = z.object({ id: z.string().uuid() }).parse(req.params);
-      const body = versionSchema.parse(req.body);
-      const request = await leave.decide(actor.id, params.id, 'approve', body.version, todayUtc());
+      const body = approveSchema.parse(req.body);
+      const request = await leave.decide(
+        actor.id,
+        params.id,
+        'approve',
+        body.version,
+        todayUtc(),
+        body.note,
+      );
       res.json(request);
     }),
   );

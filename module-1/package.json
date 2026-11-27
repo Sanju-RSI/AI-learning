@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "test": "jest",
     "quality": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "semgrep": "semgrep scan --config .semgrep.yml --error src",
     "prepare": "husky",
     "mcp": "tsx src/mcp/server.ts"
   },

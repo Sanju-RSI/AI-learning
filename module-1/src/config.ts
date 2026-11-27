@@ -6,6 +6,8 @@ export type AppConfig = {
   port: number;
 };
 
+const developmentJwtSecret = 'dev-only-leave-secret';
+
 function loadEnvFile(): void {
   if (!existsSync('.env')) {
     return;
@@ -37,9 +39,14 @@ export function loadConfig(): AppConfig {
   const parsedPort = Number(process.env.PORT ?? 3000);
   const port = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 3000;
 
+  const jwtSecret = process.env.JWT_SECRET ?? developmentJwtSecret;
+  if (process.env.NODE_ENV === 'production' && jwtSecret === developmentJwtSecret) {
+    throw new Error('JWT_SECRET must be set to a unique value in production.');
+  }
+
   return {
     databaseUrl: process.env.DATABASE_URL ?? 'postgres://localhost:5432/leave_management',
-    jwtSecret: process.env.JWT_SECRET ?? 'dev-only-leave-secret',
+    jwtSecret,
     port,
   };
 }

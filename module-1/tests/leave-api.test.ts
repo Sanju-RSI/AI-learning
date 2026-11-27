@@ -183,6 +183,64 @@ describe('leave API', () => {
     expect(annual.pendingDays).toBe(0);
   });
 
+  it('stores an optional approval note on the request and in the audit event', async () => {
+    const created = await createRequest(employee.token, shiftDate(monday, 14));
+    const approved = await request(server)
+      .post(`/api/leave/requests/${created.body.id}/approve`)
+      .set(auth(manager.token))
+      .send({ version: 1, note: 'Coverage confirmed' });
+
+    expect(approved.status).toBe(200);
+    expect(approved.body.decisionReason).toBe('Coverage confirmed');
+
+    const detail = await request(server)
+      .get(`/api/leave/requests/${created.body.id}`)
+      .set(auth(employee.token));
+    expect(detail.body.audit[0]).toMatchObject({
+      toStatus: 'APPROVED',
+      reason: 'Coverage confirmed',
+    });
+  });
+
+  it('rejects a new request that overlaps approved leave', async () => {
+    const created = await createRequest(employee.token, monday, shiftDate(monday, 2));
+    await request(server)
+      .post(`/api/leave/requests/${created.body.id}/approve`)
+      .set(auth(manager.token))
+      .send({ version: 1 });
+
+    const overlap = await createRequest(employee.token, shiftDate(monday, 1), shiftDate(monday, 3));
+    expect(overlap.status).toBe(409);
+    expect(overlap.body.error.code).toBe('OVERLAPPING_LEAVE');
+  });
+
+  it('rejects a second pending request that would exceed the remaining balance', async () => {
+    await pool.query(
+      `UPDATE leave_balances
+       SET allocated_days = 3
+       WHERE user_id = $1 AND leave_type = 'ANNUAL'`,
+      [employee.id],
+    );
+
+    const first = await createRequest(employee.token, monday, shiftDate(monday, 1));
+    expect(first.status).toBe(201);
+
+    const second = await createRequest(employee.token, shiftDate(monday, 7), shiftDate(monday, 8));
+    expect(second.status).toBe(422);
+    expect(second.body.error.code).toBe('INSUFFICIENT_BALANCE');
+  });
+
+  it('uses the current database role instead of a stale admin token', async () => {
+    await pool.query(`UPDATE users SET role = 'EMPLOYEE' WHERE id = $1`, [admin.id]);
+    try {
+      const response = await request(server).get('/api/users').set(auth(admin.token));
+      expect(response.status).toBe(403);
+      expect(response.body.error.code).toBe('FORBIDDEN');
+    } finally {
+      await pool.query(`UPDATE users SET role = 'ADMIN' WHERE id = $1`, [admin.id]);
+    }
+  });
+
   it('stops an employee approving their own request and a manager deciding another team', async () => {
     const own = await createRequest(employee.token, monday);
     const selfDecision = await request(server)

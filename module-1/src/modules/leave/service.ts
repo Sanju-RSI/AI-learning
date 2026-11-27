@@ -168,6 +168,32 @@ function assertRejectionReason(reason: string | undefined): string {
   return trimmed;
 }
 
+function approvalNote(note: string | undefined): string | null {
+  if (note === undefined) {
+    return null;
+  }
+
+  const trimmed = note.trim();
+  if (trimmed.length < 1 || trimmed.length > 500) {
+    throw new AppError(
+      422,
+      'NOTE_INVALID',
+      'An approval note must be between 1 and 500 characters.',
+    );
+  }
+  return trimmed;
+}
+
+function decisionReasonFor(action: LeaveAction, reason: string | undefined): string | null {
+  if (action === 'reject') {
+    return assertRejectionReason(reason);
+  }
+  if (action === 'approve') {
+    return approvalNote(reason);
+  }
+  return null;
+}
+
 export class LeaveService {
   constructor(private readonly pool: Pool) {}
 
@@ -313,7 +339,7 @@ export class LeaveService {
     today: Date,
     reason?: string,
   ): Promise<Omit<LeaveRequestRecord, 'managerId'>> {
-    const decisionReason = action === 'reject' ? assertRejectionReason(reason) : null;
+    const decisionReason = decisionReasonFor(action, reason);
 
     return withTransaction(this.pool, async (client) => {
       const actor = await loadActor(client, actorId);
@@ -506,17 +532,35 @@ export class LeaveService {
     year: number,
     delta: number,
   ): Promise<void> {
-    const result = await client.query(
+    const result = await client.query<{
+      used_days: string | number;
+      allocated_days: string | number;
+    }>(
       `UPDATE leave_balances
        SET used_days = used_days + $4
-       WHERE user_id = $1 AND leave_type = $2 AND year = $3`,
+       WHERE user_id = $1 AND leave_type = $2 AND year = $3
+       RETURNING used_days, allocated_days`,
       [userId, leaveType, year, delta],
     );
-    if (result.rowCount !== 1) {
+    const row = result.rows[0];
+    if (!row) {
       throw new AppError(
         422,
         'BALANCE_NOT_FOUND',
         `No ${leaveType.toLowerCase()} balance exists for ${year}.`,
+      );
+    }
+
+    const usedDays = toNumber(row.used_days);
+    const allocatedDays = toNumber(row.allocated_days);
+    if (delta > 0 && usedDays > allocatedDays) {
+      const shortfall = usedDays - allocatedDays;
+      const label = leaveType === 'ANNUAL' ? 'Annual' : 'Sick';
+      const unit = shortfall === 1 ? 'day' : 'days';
+      throw new AppError(
+        422,
+        'INSUFFICIENT_BALANCE',
+        `${label} leave balance is short by ${shortfall} ${unit}.`,
       );
     }
   }

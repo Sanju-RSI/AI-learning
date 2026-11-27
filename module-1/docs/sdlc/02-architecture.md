@@ -4,15 +4,15 @@ Milestone 1, step 2. API contracts and the database schema below are what the im
 
 ## Stack
 
-| Concern | Choice | Why |
-| --- | --- | --- |
-| Runtime | Node.js + TypeScript | Already the harness language |
-| HTTP | Express | Small enough to sit next to the current scripts. NestJS would add a second framework without helping the assignment rules. |
-| Validation | Zod | Already a dependency, and the MCP server already uses it |
-| Database | PostgreSQL | Required by the assignment. Schema is applied with SQL migrations. |
-| Auth | Email and password, bcrypt hashes, JWT access token | Enough to demonstrate sign-in and RBAC |
-| Tests | Jest | Already configured. Unit tests cover pure rules. Integration tests hit the API with a test database. |
-| Quality gate | `npm run quality` plus a later GitHub Actions workflow and Semgrep | Husky already runs tests before commit. CI and Semgrep are step 7. |
+| Concern      | Choice                                                             | Why                                                                                                                        |
+| ------------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Runtime      | Node.js + TypeScript                                               | Already the harness language                                                                                               |
+| HTTP         | Express                                                            | Small enough to sit next to the current scripts. NestJS would add a second framework without helping the assignment rules. |
+| Validation   | Zod                                                                | Already a dependency, and the MCP server already uses it                                                                   |
+| Database     | PostgreSQL                                                         | Required by the assignment. Schema is applied with SQL migrations.                                                         |
+| Auth         | Email and password, bcrypt hashes, JWT access token                | Enough to demonstrate sign-in and RBAC                                                                                     |
+| Tests        | Jest                                                               | Already configured. Unit tests cover pure rules. Integration tests hit the API with a test database.                       |
+| Quality gate | `npm run quality` plus a later GitHub Actions workflow and Semgrep | Husky already runs tests before commit. CI and Semgrep are step 7.                                                         |
 
 The sample `calculateDiscount` code stays until the leave API has its own tests. New leave code lives beside it and does not import it.
 
@@ -64,18 +64,18 @@ The row lock plus the version check is the duplicate-action protection. Two over
 
 The access token carries `sub` (user id) and `role`. Routes still load the user inside the transaction when a decision needs `manager_id` or a fresh role. A token is not trusted for “this person still reports to me”.
 
-| Capability | Employee | Manager | Admin |
-| --- | --- | --- | --- |
-| `POST /api/auth/login` | yes | yes | yes |
-| `GET /api/auth/me` | yes | yes | yes |
-| `GET /api/leave/balances` | own | own | any user via `userId` |
-| `POST /api/leave/requests` | own | own | own |
-| `GET /api/leave/requests` | own | own + direct reports | all |
-| `POST /api/leave/requests/:id/approve` | no | direct reports | any except self |
-| `POST /api/leave/requests/:id/reject` | no | direct reports | any except self |
-| `POST /api/leave/requests/:id/cancel` | own, when the status rule allows | own, when the status rule allows | any except a self-approval path |
-| `GET /api/users` | no | no | yes |
-| `POST /api/users` | no | no | yes |
+| Capability                             | Employee                         | Manager                          | Admin                           |
+| -------------------------------------- | -------------------------------- | -------------------------------- | ------------------------------- |
+| `POST /api/auth/login`                 | yes                              | yes                              | yes                             |
+| `GET /api/auth/me`                     | yes                              | yes                              | yes                             |
+| `GET /api/leave/balances`              | own                              | own                              | any user via `userId`           |
+| `POST /api/leave/requests`             | own                              | own                              | own                             |
+| `GET /api/leave/requests`              | own                              | own + direct reports             | all                             |
+| `POST /api/leave/requests/:id/approve` | no                               | direct reports                   | any except self                 |
+| `POST /api/leave/requests/:id/reject`  | no                               | direct reports                   | any except self                 |
+| `POST /api/leave/requests/:id/cancel`  | own, when the status rule allows | own, when the status rule allows | any except a self-approval path |
+| `GET /api/users`                       | no                               | no                               | yes                             |
+| `POST /api/users`                      | no                               | no                               | yes                             |
 
 ## API contracts
 
@@ -91,14 +91,14 @@ Dates are `YYYY-MM-DD`. Errors use one shape:
 }
 ```
 
-| Status | When |
-| --- | --- |
-| 400 | Body fails schema validation |
-| 401 | Missing or invalid token |
-| 403 | Signed in, but the role or relationship does not allow the action |
-| 404 | Request or user does not exist, or is hidden from this caller |
-| 409 | Version mismatch, illegal status transition, or overlapping dates |
-| 422 | Dates, balance, or reason fail a business rule |
+| Status | When                                                              |
+| ------ | ----------------------------------------------------------------- |
+| 400    | Body fails schema validation                                      |
+| 401    | Missing or invalid token                                          |
+| 403    | Signed in, but the role or relationship does not allow the action |
+| 404    | Request or user does not exist, or is hidden from this caller     |
+| 409    | Version mismatch, illegal status transition, or overlapping dates |
+| 422    | Dates, balance, or reason fail a business rule                    |
 
 ### `POST /api/auth/login`
 
@@ -109,7 +109,12 @@ Dates are `YYYY-MM-DD`. Errors use one shape:
 ```json
 {
   "token": "<jwt>",
-  "user": { "id": "uuid", "email": "employee@example.com", "fullName": "Asha Rao", "role": "EMPLOYEE" }
+  "user": {
+    "id": "uuid",
+    "email": "employee@example.com",
+    "fullName": "Asha Rao",
+    "role": "EMPLOYEE"
+  }
 }
 ```
 
@@ -136,8 +141,10 @@ Dates are `YYYY-MM-DD`. Errors use one shape:
 ### `POST /api/leave/requests/:id/approve`
 
 ```json
-{ "version": 1 }
+{ "version": 1, "note": "Coverage confirmed" }
 ```
+
+`note` is optional. When it is sent, it is stored as the decision reason and on the audit event. A missing note leaves the reason empty.
 
 ### `POST /api/leave/requests/:id/reject`
 
@@ -215,25 +222,25 @@ Pending days are not a stored column. The service sums `days` of PENDING request
 
 ## Seed data
 
-| Email | Role | Reports to | Annual | Sick |
-| --- | --- | --- | --- | --- |
-| admin@example.com | ADMIN | — | 20 | 10 |
-| manager@example.com | MANAGER | admin | 20 | 10 |
-| employee@example.com | EMPLOYEE | manager | 20 | 10 |
-| other@example.com | EMPLOYEE | admin | 20 | 10 |
+| Email                | Role     | Reports to | Annual | Sick |
+| -------------------- | -------- | ---------- | ------ | ---- |
+| admin@example.com    | ADMIN    | —          | 20     | 10   |
+| manager@example.com  | MANAGER  | admin      | 20     | 10   |
+| employee@example.com | EMPLOYEE | manager    | 20     | 10   |
+| other@example.com    | EMPLOYEE | admin      | 20     | 10   |
 
 `other@example.com` exists so tests can prove a manager cannot decide a request outside their team. Passwords are set in the seed script and documented in the setup section of the README when the app is built. They are development-only values.
 
 ## What is deliberately later
 
-| Step | Work | When |
-| --- | --- | --- |
-| 3 | Project conventions for the API: error codes, module boundaries, test database | Before the first route |
-| 4 | Auth, RBAC, create and list | After this document is accepted |
-| 5 | Transitions, audit, version conflicts, balance updates | With the leave service |
-| 6 | Unit and integration tests, then a review pass with the code-review skill | After the service works |
-| 7 | GitHub Actions, Semgrep, API documentation | After tests pass |
-| 8 | One new feature and one seeded bug, then show the harness catching the bug | Last SDLC step |
+| Step | Work                                                                           | When                            |
+| ---- | ------------------------------------------------------------------------------ | ------------------------------- |
+| 3    | Project conventions for the API: error codes, module boundaries, test database | Before the first route          |
+| 4    | Auth, RBAC, create and list                                                    | After this document is accepted |
+| 5    | Transitions, audit, version conflicts, balance updates                         | With the leave service          |
+| 6    | Unit and integration tests, then a review pass with the code-review skill      | After the service works         |
+| 7    | GitHub Actions, Semgrep, API documentation                                     | After tests pass                |
+| 8    | One new feature and one seeded bug, then show the harness catching the bug     | Last SDLC step                  |
 
 The seeded bug is not written in the first implementation. It is added on purpose in step 8, after the correct behaviour and tests exist, so the review can show the harness finding it.
 

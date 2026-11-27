@@ -8,21 +8,21 @@ Employees need a single place to request leave, see their balance, and track a d
 
 ## Users and roles
 
-| Role | Who they are | What they can do |
-| --- | --- | --- |
-| Employee | Any staff member who takes leave | Sign in, view own balance, create a request, view own requests, cancel a pending request |
-| Manager | An employee who has direct reports | Everything an employee can do, plus view direct reports’ requests and approve or reject those requests |
-| Admin | An HR operator | Manage users, view every request and balance, approve, reject, or cancel any request that is not their own |
+| Role     | Who they are                       | What they can do                                                                                           |
+| -------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Employee | Any staff member who takes leave   | Sign in, view own balance, create a request, view own requests, cancel a pending request                   |
+| Manager  | An employee who has direct reports | Everything an employee can do, plus view direct reports’ requests and approve or reject those requests     |
+| Admin    | An HR operator                     | Manage users, view every request and balance, approve, reject, or cancel any request that is not their own |
 
 A manager is also an employee. Their own leave is approved by their manager, or by an admin when they have no manager. Nobody can approve, reject, or cancel-as-a-decision their own request.
 
 ## Leave types
 
-| Code | Name | Uses a balance |
-| --- | --- | --- |
-| ANNUAL | Annual leave | Yes |
-| SICK | Sick leave | Yes |
-| UNPAID | Unpaid leave | No |
+| Code   | Name         | Uses a balance |
+| ------ | ------------ | -------------- |
+| ANNUAL | Annual leave | Yes            |
+| SICK   | Sick leave   | Yes            |
+| UNPAID | Unpaid leave | No             |
 
 Public holidays and half days are out of scope. A request covers whole working days, Monday to Friday, inclusive of the start and end dates.
 
@@ -36,14 +36,14 @@ PENDING ──approve──▶ APPROVED ──cancel──▶ CANCELLED
    └──cancel──▶ CANCELLED
 ```
 
-| From | To | Who | Extra rule |
-| --- | --- | --- | --- |
-| PENDING | APPROVED | Direct manager, or any admin | Actor is not the requester. Balance is reserved only after approval. |
-| PENDING | REJECTED | Direct manager, or any admin | Actor is not the requester. A decision reason of at least 3 characters is required. |
-| PENDING | CANCELLED | Requester or any admin | No decision reason required. |
-| APPROVED | CANCELLED | Requester or any admin | Allowed only when the start date is still in the future. Restores the balance that approval consumed. |
-| REJECTED | — | — | Terminal. Further actions return a conflict. |
-| CANCELLED | — | — | Terminal. Further actions return a conflict. |
+| From      | To        | Who                          | Extra rule                                                                                            |
+| --------- | --------- | ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| PENDING   | APPROVED  | Direct manager, or any admin | Actor is not the requester. Balance is reserved only after approval.                                  |
+| PENDING   | REJECTED  | Direct manager, or any admin | Actor is not the requester. A decision reason of at least 3 characters is required.                   |
+| PENDING   | CANCELLED | Requester or any admin       | No decision reason required.                                                                          |
+| APPROVED  | CANCELLED | Requester or any admin       | Allowed only when the start date is still in the future. Restores the balance that approval consumed. |
+| REJECTED  | —         | —                            | Terminal. Further actions return a conflict.                                                          |
+| CANCELLED | —         | —                            | Terminal. Further actions return a conflict.                                                          |
 
 ## Business rules
 

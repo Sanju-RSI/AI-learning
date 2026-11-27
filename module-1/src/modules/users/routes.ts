@@ -19,7 +19,7 @@ const createUserSchema = z.object({
 export function createUserRouter(pool: Pool, config: AppConfig): Router {
   const router = Router();
   const users = new UserService(pool);
-  router.use(createAuthenticate(config.jwtSecret));
+  router.use(createAuthenticate(pool, config.jwtSecret));
   router.use(authorize('ADMIN'));
 
   router.get(

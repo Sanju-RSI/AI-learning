@@ -1,8 +1,11 @@
+import bcrypt from 'bcryptjs';
 import type { Pool } from 'pg';
 import { AppError } from '../../errors.js';
 import type { Role } from './roles.js';
 import { verifyPassword } from './passwords.js';
 import { signAccessToken } from './tokens.js';
+
+const missingAccountHash = bcrypt.hashSync('missing-account', 10);
 
 export type PublicUser = {
   id: string;
@@ -30,7 +33,7 @@ export async function login(
     [email.trim().toLowerCase()],
   );
   const user = result.rows[0];
-  const passwordMatches = user ? await verifyPassword(password, user.password_hash) : false;
+  const passwordMatches = await verifyPassword(password, user?.password_hash ?? missingAccountHash);
 
   if (!user || !passwordMatches) {
     throw new AppError(401, 'INVALID_CREDENTIALS', 'Email or password is incorrect.');

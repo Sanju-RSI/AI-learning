@@ -1,0 +1,18 @@
+rules:
+  - id: no-eval
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Do not use eval. It runs a string as code.
+    pattern: eval(...)
+  - id: no-hardcoded-jwt-secret
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Pass the JWT secret from configuration. Do not embed a secret literal in jwt.sign.
+    pattern: jwt.sign($PAYLOAD, "...", ...)
+  - id: no-sql-string-concatenation
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: Build SQL with query parameters. Do not concatenate values into a query string.
+    pattern-either:
+      - pattern: $POOL.query($SQL + $VALUE, ...)
+      - pattern: $CLIENT.query($SQL + $VALUE, ...)

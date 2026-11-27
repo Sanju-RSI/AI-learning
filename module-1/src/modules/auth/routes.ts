@@ -25,7 +25,7 @@ export function createAuthRouter(pool: Pool, config: AppConfig): Router {
 
   router.get(
     '/me',
-    createAuthenticate(config.jwtSecret),
+    createAuthenticate(pool, config.jwtSecret),
     asyncHandler(async (req, res) => {
       const actor = requireUser(req);
       const result = await pool.query<{

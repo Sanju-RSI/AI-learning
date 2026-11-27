@@ -1,5 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
+import type { Pool } from 'pg';
 import { AppError } from '../errors.js';
+import { isRole } from '../modules/auth/roles.js';
 import { verifyAccessToken, type AuthenticatedUser } from '../modules/auth/tokens.js';
 
 declare global {
@@ -12,7 +14,7 @@ declare global {
   }
 }
 
-export function createAuthenticate(secret: string) {
+export function createAuthenticate(pool: Pool, secret: string) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     const header = req.header('authorization');
     if (!header?.startsWith('Bearer ')) {
@@ -20,12 +22,29 @@ export function createAuthenticate(secret: string) {
       return;
     }
 
+    let tokenUser: AuthenticatedUser;
     try {
-      req.user = verifyAccessToken(header.slice('Bearer '.length).trim(), secret);
-      next();
+      tokenUser = verifyAccessToken(header.slice('Bearer '.length).trim(), secret);
     } catch (error) {
       next(error);
+      return;
     }
+
+    pool
+      .query<{ id: string; role: string }>('SELECT id, role FROM users WHERE id = $1', [
+        tokenUser.id,
+      ])
+      .then((result) => {
+        const row = result.rows[0];
+        if (!row || !isRole(row.role)) {
+          next(new AppError(401, 'UNAUTHORIZED', 'Account no longer exists.'));
+          return;
+        }
+
+        req.user = { id: row.id, role: row.role };
+        next();
+      })
+      .catch(next);
   };
 }
 
